@@ -352,6 +352,21 @@ lint_templates() {
   fi
 }
 
+# spot-ai ships a measurement script whose definitions ARE the calibration behind
+# GRAYLIST.md's reference rates: change a regex and every published rate silently
+# stops meaning what it says. The fixture asserts doc counts, the JSONL contract,
+# and the bug classes found by execution in review (NaN emitted into a profile,
+# list tokens counted as punch fragments, non-dict records crashing a run).
+lint_spot_ai_rates() {
+  fixture="$(dirname "$0")/../skills/spot-ai/tests/test_measure_rates.py"
+  if [ -f "$fixture" ]; then
+    python3 "$fixture" >/dev/null || { python3 "$fixture"; exit 1; }
+    echo "  ✓ spot-ai measurement fixture passed"
+  else
+    echo "  ! skills/spot-ai/tests/test_measure_rates.py missing — measurement definitions NOT linted" >&2
+  fi
+}
+
 # The claude-tab extension exists in two places on purpose: tab-setup/ (the fork
 # checkout) is what actually deploys, but it's gitignored here, so the tracked
 # copy in vscode-extension/ is the only one CI can review and unit test. They
@@ -497,6 +512,7 @@ case "$1" in
       lint_frontmatter
       lint_skill_refs
       lint_templates
+      lint_spot_ai_rates
       lint_vscode_extension
       lint_shell
       if [ -n "$RESOLVED_SKILLS" ]; then
@@ -538,6 +554,7 @@ case "$1" in
       lint_frontmatter
       lint_skill_refs
       lint_templates
+      lint_spot_ai_rates
       lint_vscode_extension
       lint_shell
       echo "Deploying skills/ → $SKILLS_DEST"
@@ -584,6 +601,7 @@ case "$1" in
     lint_frontmatter
     lint_skill_refs
     lint_templates
+    lint_spot_ai_rates
     lint_vscode_extension
     lint_shell
     ;;

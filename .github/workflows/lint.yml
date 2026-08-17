@@ -44,3 +44,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run smoke tests against tests/fixtures/
         run: bash tests/smoke_test_parsers.sh
+
+  spot-ai-rates:
+    name: spot-ai measurement definitions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Measurement fixture (definitions behind GRAYLIST reference rates)
+        run: python3 skills/spot-ai/tests/test_measure_rates.py

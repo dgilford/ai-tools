@@ -27,7 +27,13 @@ All four reviewer agents (`attribution-reviewer`, `stats-reviewer`,
 `ai-review`, `commit-batch`/`commit-batching`, `evolve-claude-md`,
 `figure-review`, `grill-me`/`grilling`, `overbaked`, `pathfinder`, `pickup`,
 `repo-init`, `reviewer-2`, `slack-message` (drafts from git context — no Slack
-connection needed), `write-new-skill`.
+connection needed), `spot-ai` (two optional layers: a machine-local voice profile at
+`~/.claude/spot-ai/voice-profile.md` — the author's measured writing statistics,
+produced with the skill's `scripts/measure_rates.py`, which re-tunes reference
+rates and annotates author-voice patterns without exempting anything — and a
+per-repo `.ai/graylist.md` override that can add entries, exempt shipped ones,
+or re-tune rates; with neither present it runs on the shipped `GRAYLIST.md`
+alone), `write-new-skill`.
 
 `unstale` needs `ruff` and `vulture` (plus `nbqa` for notebook mode) but
 installs them into the project venv itself if missing.

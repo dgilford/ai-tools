@@ -38,6 +38,7 @@ Standalone update  →  /evolve-claude-md  promote session knowledge to CLAUDE.m
 | create-alert | `/create-alert [--spec-only]` | Getting pinged on Slack when something changes/happens: grills a "tell me when X" ask into a testable trigger, dry-runs it, and (on sign-off) creates a scheduled cloud routine. `--spec-only` stops at the spec |
 | tab-setup | `/tab-setup [all]` | Naming / coloring this Claude Code tab; `all` recolors every active session |
 | write-new-skill | `/write-new-skill` | Scaffolding a new skill from scratch |
+| spot-ai | `/spot-ai [path \| pasted text]` | Checking prose for **AI markers**: gray-list style tells (lane 1) and generation-mechanism substance tells like fabricated provenance or invented first-person testimony (lane 2). Flags only. Not a copy-editor — it reports AI markers, not writing advice |
 | ai-review | `/ai-review` | Full comprehensive repo/project review; orchestrates code-review/security-review/unstale/overbaked/reviewer-2 in parallel and adds gap-hunting + grounded ideation + prioritized synthesis. Run on fable at high+ effort |
 | pathfinder | `/pathfinder` | This router |
 
@@ -96,6 +97,7 @@ Need a review?
 
 - Single-domain question → one reviewer, not all four.
 - `/reviewer-2` covers the generalist case; don't over-convene the panel for a claim check.
+- **Prose checks split three ways:** `/spot-ai` = does this read as machine-written (AI markers only) · `/overbaked` = is it over-engineered or verbose · `/reviewer-2` = is the claim defensible. spot-ai deliberately refers the other two out rather than duplicating them.
 - `scicomm-reviewer` is for public-facing products, not internal methods or data.
 
 ### Citing literature during a review
