@@ -59,18 +59,21 @@ should not change the world.
 
 ## The one consequence that lives in CLAUDE.md
 
-Rows 3 and 9b combine into the one actionable rule — a skill named mid-sentence
-does not expand, but a **gated** one is still reachable by name through the
-`Skill` tool, so what you lose is argument capture, not access. That rule is
-stated in `CLAUDE.md` under "A gated skill only expands at the head of a
-submission", not repeated here.
+Rows 3, 9b, and 9c combine into the one actionable rule, and **the rule is
+version-dependent**: a skill named mid-sentence does not expand (row 3, stable);
+whether a gated skill is then reachable via the `Skill` tool has flip-flopped —
+callable at 2.1.221 (row 9b), hard-rejected at 2.1.224 (row 9c). At current
+versions a gated skill is reachable **only** by a user-typed leading `/slash-command`.
+The corresponding paragraph in `CLAUDE.md` ("A gated skill only expands at the
+head of a submission") was re-promoted to the version-dependent form on 2026-08-11.
 
-It is the only part promoted out of this register, and it survives every
-confound still open on row 3. **It also spent a while stated wrongly** — as
-"no invocation path from that phrasing," which row 9b falsified on 2026-08-04.
-Worth remembering when deciding what else to promote: the rule that got copied
-into the always-loaded file was the one claim here nobody re-tested, because it
-read as settled. Prefer promoting things that fail loudly.
+This behavior has now been recorded in three states across versions, which makes
+it the register's cautionary tale twice over: the claim promoted into the
+always-loaded file was wrong once by staleness (pre-2.1.221 hard-reject stated
+as fact after it stopped being true) and once by reversal (the 2.1.221 loophole
+stated as settled just before 2.1.224 closed it). Prefer promoting things that
+fail loudly — this one at least fails loudly now: the 9c rejection prints an
+explicit error naming the field.
 
 ## Settings and hooks
 
@@ -79,7 +82,8 @@ read as settled. Prefer promoting things that fail loudly.
 | 8 | Interactive `/model` and `/effort` write straight into `~/.claude/settings.json` as the new default. | observed | Motivates the `SessionStart` re-pin hook. Version unrecorded. |
 | 8b | There is no per-session opt-in for model or effort (only `fastModePerSessionOptIn`, covering fast mode alone). | inferred | A universal negative: this comes from enumerating the settings schema, not from observing an absence. A future release could add one without this row noticing. |
 | 9 | `disable-model-invocation: true` does **not** reclaim description token budget — the description stays in the model's selection context. | observed | CLI 2.1.181. Known open bug: anthropics/claude-code#31935, #41417. |
-| 9b | `disable-model-invocation: true` withholds a skill from the available-skills listing Claude selects from, but does **not** reject an explicit `Skill` call naming it. | observed | 2026-08-04, **CLI 2.1.221**. Found by accident while running the row 3 probe: `let's /pickup now` did not expand, and `Skill(pickup)` then loaded the body normally — no error. `pickup` is confirmed gated in its frontmatter, and all 11 gated skills in this repo were absent from that session's listing while all 9 ungated ones were present, so the withholding half is solid at n=11/9. **This corrects a claim `CLAUDE.md` carried until now:** that the tool "hard-rejects it (`cannot be used with Skill tool due to disable-model-invocation`)". That rejection was never observed here; it may have been true at an earlier version, or may have been inferred from the field's name and written down as fact. Either way the invocation path exists at 2.1.221, so gating is not a way to make a skill unreachable — it only stops Claude reaching for it *unprompted*. |
+| 9b | `disable-model-invocation: true` withholds a skill from the available-skills listing Claude selects from, but does **not** reject an explicit `Skill` call naming it. | observed | 2026-08-04, **CLI 2.1.221**. Found by accident while running the row 3 probe: `let's /pickup now` did not expand, and `Skill(pickup)` then loaded the body normally — no error. `pickup` is confirmed gated in its frontmatter, and all 11 gated skills in this repo were absent from that session's listing while all 9 ungated ones were present, so the withholding half is solid at n=11/9. **This corrects a claim `CLAUDE.md` carried until now:** that the tool "hard-rejects it (`cannot be used with Skill tool due to disable-model-invocation`)". That rejection was never observed here; it may have been true at an earlier version, or may have been inferred from the field's name and written down as fact. Either way the invocation path exists at 2.1.221, so gating is not a way to make a skill unreachable — it only stops Claude reaching for it *unprompted*. **Reversed at 2.1.224** — see row 9c. |
+| 9c | At **CLI 2.1.224** the explicit-call loophole of row 9b is closed: `Skill(spot-ai)` on a gated skill hard-rejects with `Skill spot-ai cannot be used with Skill tool due to disable-model-invocation. Ask the user to run /spot-ai themselves… Do not replicate this skill's workflow by other means`. | observed | 2026-08-11, **CLI 2.1.224**, n=1 (fresh deploy of `spot-ai`, gated, first-ever invocation attempt in the session). This is the *third* state this behavior has been recorded in: hard-reject (claimed pre-2.1.221, never observed here) → callable (observed 2.1.221, row 9b) → hard-reject with this exact error text (observed 2.1.224). So at ≥2.1.224 gating once again makes a skill fully unreachable except by a user-typed leading `/slash-command` — the launcher/core split is load-bearing again, not just an argument-capture convenience. The rejection also instructs the model not to replicate the skill's workflow manually. Confounds: n=1, one skill, same-session deploy (the skill was pushed moments earlier — a stale-snapshot interaction can't be excluded, though the error names the gating field explicitly, which a snapshot miss would not). |
 | 10 | Agent frontmatter that fails to parse is dropped **silently** — the `.md` deploys and the type never registers. | observed | Classic cause: unquoted multi-line `description` containing `": "`. `lint_frontmatter()` exists for this. Version unrecorded. |
 | 10b | The failure only surfaces in a *fresh* session, because the agent-type list is snapshotted at session start. | inferred | No single session can observe cross-session snapshotting; this is the explanation that fits, not a thing that was watched. |
 | 11 | A ~1,536-char cap on skill `description`. | reported | CLI 2.1.181, unsourced in official docs. The lint enforces it; re-verify before relying on the exact number. CLAUDE.md defers to this row for the tier — keep them in agreement. |
