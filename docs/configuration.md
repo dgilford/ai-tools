@@ -42,6 +42,29 @@ installs them into the project venv itself if missing.
 final step invokes `worklog`, which quietly does nothing beyond a local mirror
 until you configure it (below).
 
+## Review-report provenance (no configuration)
+
+The six report-producing skills (`ai-review`, `figure-review`, `overbaked`,
+`reviewer-2`, `spot-ai`, `unstale`) prepend a YAML provenance header to each
+report they archive under `.ai/reviews/`, naming the toolkit version that
+produced it alongside the reviewed commit, CLI version, and date. This exists so
+a report re-read months later can be placed against a revision of the skill's
+criteria — without it, an archived report is undated relative to the skill.
+
+The `skill-version` value is read from a `.version` file that `sync.sh push`
+writes into each deployed skill directory (the deployed dir is not a git
+checkout, so this is the only route to that provenance at review time). Nothing
+to configure — but two behaviors are worth knowing:
+
+- **Under a plugin install** (`/plugin install`), `.version` is absent, so the
+  field records `unknown`. This is expected, not a failure: plugin installs do
+  not go through `sync.sh`.
+- **Any value that fails to resolve becomes `unknown`** rather than being
+  omitted, and a failed lookup never blocks or alters the archive.
+
+The file is gitignored (`skills/*/.version`) so that `sync.sh pull` cannot
+round-trip it back into the repo as a tracked file.
+
 ## `lit-review`
 
 Searches whichever literature sources are connected and skips the rest — no

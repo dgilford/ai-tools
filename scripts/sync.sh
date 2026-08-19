@@ -143,6 +143,14 @@ resolve_name() {
 deploy_skill() {
   mkdir -p "$SKILLS_DEST/$1"
   cp -r "$SKILLS_SRC/$1/." "$SKILLS_DEST/$1/"
+  # Stamp the toolkit version into the DEPLOYED copy so an archived review report
+  # can name the skill version that produced it (read back by each report-producing
+  # skill's ## Archive section). The deployed dir is not a git checkout, so this
+  # file is the only way that provenance is reachable at review time.
+  # Never written to $SKILLS_SRC, and gitignored (skills/*/.version) so that
+  # `sync.sh pull` cannot round-trip it back into the repo as a tracked file.
+  printf '%s\n' "$(git -C "$REPO_DIR" describe --always --dirty --tags 2>/dev/null || echo unknown)" \
+    > "$SKILLS_DEST/$1/.version"
 }
 
 deploy_agent() {

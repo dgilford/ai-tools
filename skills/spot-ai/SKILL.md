@@ -158,6 +158,34 @@ target's repo root; `--no-archive` opts out. Rules:
   can embed the author's profile-derived statistics and must not land on a trackable path.
 - Best-effort; never block the review.
 
+**Provenance header.** Prepend a YAML block to the **archived file only** (never to the
+report shown to the user), so a report re-read months later is still interpretable — in
+particular, so you can tell whether it predates a revision of this skill's criteria:
+
+```yaml
+---
+skill: spot-ai
+skill-version: <toolkit version>
+reviewed-repo: <repo basename> @ <short SHA>[ (dirty)]
+cli: <claude --version>
+date: <YYYY-MM-DD>
+---
+```
+
+Collect the values with:
+
+```bash
+SD="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/spot-ai}"; SD="${SD:-$HOME/.claude/skills/spot-ai}"
+cat "$SD/.version" 2>/dev/null || echo unknown    # skill-version ("unknown" under plugin install)
+git rev-parse --short HEAD 2>/dev/null || echo unknown
+git status --porcelain 2>/dev/null | head -1      # non-empty → append " (dirty)"
+claude --version 2>/dev/null || echo unknown
+```
+
+`.version` is written into the deployed skill dir by `sync.sh push`; it is absent under a
+plugin install, which is expected. Resolve any value that fails to `unknown` — never drop
+the key, and never let a failed lookup block or alter the archive.
+
 ## Does not
 
 - Rewrite, rephrase, or edit the target — ever. Suggestions live in the report only.

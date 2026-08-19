@@ -51,6 +51,34 @@ Stop when findings become trivial or the user overrides. Do not manufacture conc
 
 Unless `--no-archive` was passed: after emitting the report, write it verbatim to `<repo-root>/.ai/reviews/<YYYY-MM-DD>-reviewer-2[-<topic-slug>].md` (`mkdir -p "$(git rev-parse --show-toplevel)/.ai/reviews"`; suffix `-2`, `-3`… on filename collision). Best-effort — if the cwd isn't a git repo or the write fails, add a one-line note and move on; never alter the review itself. Probe the ignore with the **file path at repo root**, not the bare directory: if `git check-ignore -q "$(git rev-parse --show-toplevel)/.ai/reviews/probe.md"` exits non-zero, warn and suggest adding `.ai/` to `.gitignore`. (`git check-ignore -q .ai` false-negatives for the directory-form `.ai/` pattern whenever the directory does not yet exist.)
 
+**Provenance header.** Prepend a YAML block to the **archived file only** (never to the
+report shown to the user), so a report re-read months later is still interpretable — in
+particular, so you can tell whether it predates a revision of this skill's criteria:
+
+```yaml
+---
+skill: reviewer-2
+skill-version: <toolkit version>
+reviewed-repo: <repo basename> @ <short SHA>[ (dirty)]
+cli: <claude --version>
+date: <YYYY-MM-DD>
+---
+```
+
+Collect the values with:
+
+```bash
+SD="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/reviewer-2}"; SD="${SD:-$HOME/.claude/skills/reviewer-2}"
+cat "$SD/.version" 2>/dev/null || echo unknown    # skill-version ("unknown" under plugin install)
+git rev-parse --short HEAD 2>/dev/null || echo unknown
+git status --porcelain 2>/dev/null | head -1      # non-empty → append " (dirty)"
+claude --version 2>/dev/null || echo unknown
+```
+
+`.version` is written into the deployed skill dir by `sync.sh push`; it is absent under a
+plugin install, which is expected. Resolve any value that fails to `unknown` — never drop
+the key, and never let a failed lookup block or alter the archive.
+
 ## Does not
 
 - Rewrite or fix the argument.
